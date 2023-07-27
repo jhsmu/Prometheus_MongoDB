@@ -1,0 +1,51 @@
+version: 3.0
+
+bind: 0.0.0.0:9412
+
+log:
+  encoding: json
+  level: info
+  development: false
+  disableCaller: false
+
+global:
+  queryTimeout: 3s
+  maxConnection: 3
+  defaultCache: 0
+
+servers:
+  - name: main
+    uri: mongodb://admin:admin@mongodb:27017/
+
+aggregations:
+  - database: jenkina_pipelines
+    collection: metricas_pipelines
+    servers: [main]
+    metrics:
+      - name: prueba
+        type: gauge
+        help: 'Número de pipelines por resultado de ejecución (SUCCESS, FAILURE, UNSTABLE)'
+        value: total
+        labels: [pipeline_name, execution_result]
+        constLabels: []
+    mode: pull
+    pipeline: |
+      [
+        {
+          "$group": {
+            "_id": {
+              "pipelineName": "$pipelineName",
+              "executionResult": "$executionResult"
+            },
+            "total": { "$sum": 1 }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "pipeline_name": "$_id.pipelineName",
+            "execution_result": "$_id.executionResult",
+            "total": "$total"
+          }
+        }
+      ]
