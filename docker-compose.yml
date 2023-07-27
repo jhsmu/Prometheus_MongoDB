@@ -1,0 +1,45 @@
+version: '3'
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - mongodb_data_container:/data/db
+
+  mongodb-query-exporter:
+    image: raffis/mongodb-query-exporter:v1.0.0
+    depends_on:
+      - mongodb
+    command:
+      - "--uri=mongodb://admin:admin@mongodb:27017/"
+      - "-f=/tmp/config.yaml"
+    volumes:
+      - ./mongodb-query-exporter/config.yaml:/tmp/config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9412:9412   # Agregamos el puerto 9412 para exponer el mongodb-query-exporter
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - 9090:9090
+    depends_on:
+      - mongodb-query-exporter
+
+  grafana:
+    image: grafana/grafana:8.0.6
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
+
+volumes:
+  mongodb_data_container:
