@@ -24,13 +24,14 @@ services:
       - 9412:9412   # Agregamos el puerto 9412 para exponer el mongodb-query-exporter
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - ./prometheus:/etc/prometheus
     ports:
       - 9090:9090
+    command:
+     - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
       - mongodb-query-exporter
 
