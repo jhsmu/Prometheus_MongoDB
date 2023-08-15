@@ -22,7 +22,7 @@ aggregations:
     collection: metricas_pipelines
     servers: [main]
     metrics:
-      - name: prueba
+      - name: Metricas_Pipelines
         type: gauge
         help: 'Número de pipelines por resultado de ejecución (SUCCESS, FAILURE, UNSTABLE)'
         value: total
